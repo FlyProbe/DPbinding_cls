@@ -8,6 +8,7 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.append(parent_dir)
 
 from misc import utils
+from datasets.transforms import dna_aug
 
 
 class TFBSWithNeg(Dataset):
@@ -76,7 +77,7 @@ class TFBSWithNeg_offline(Dataset):
                 label)
 
 
-class TFBSWithNeg_flex(Dataset):
+class TFBSWithNeg_flexDNA_TESTONLY(Dataset):
     def __init__(self,
                  data,
                  pos_r=0.3,
@@ -84,6 +85,9 @@ class TFBSWithNeg_flex(Dataset):
                  rand_r=0.1,
                  **kwargs):
         self.data = data
+        self.extension = kwargs.get("extension", None)
+        self.DNAbert2 = kwargs.get("DNAbert2", None)
+        self.DNA_tokenizer = kwargs.get("DNA_tokenizer", None)
 
         # TODO: NOT USED. Currently just use a fixed dataset.
         self.pos_r = pos_r
@@ -95,8 +99,9 @@ class TFBSWithNeg_flex(Dataset):
 
     def __getitem__(self, idx):
         protein_eb = self.data[idx]['TF_embedding'].squeeze(0)
-        dna_eb = self.data[idx]['BS_embedding']
-        label = self.data[idx]['label']
+        dna = dna_aug.DNA_extension(self.data[idx]['BS_seq'], self.extension)
+        dna_eb = utils.DNAbert2_embedding(dna, self.DNA_tokenizer, self.DNAbert2)
+        label = self.data[idx].get('label', None)
 
         return (protein_eb,
                 dna_eb,

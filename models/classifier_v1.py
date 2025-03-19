@@ -114,14 +114,11 @@ class ProteinDNAClassifier_v1(nn.Module):
         Returns:
             logits: Tensor of shape (batch_size, 2)
         """
-        # 增加序列长度维度以用于Cross Attention
         seq1 = seq1.unsqueeze(1)  # (batch_size, 1, length)
         seq2 = seq2.unsqueeze(1)  # (batch_size, 1, length)
 
-        # Cross Attention融合两个不同长度的序列
         fused_seq = self.cross_attention(seq1, seq2)  # (batch_size, 1, out_dim)
 
-        # 通过ResNet和每层的Pooling操作：
         x = self.resblock1a(fused_seq)
         x = self.attention1(x)
 
