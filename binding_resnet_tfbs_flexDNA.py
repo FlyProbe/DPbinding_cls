@@ -20,7 +20,7 @@ from transformers.models.bert.configuration_bert import BertConfig
 from collections import Counter
 
 from models.classifier_v1 import ProteinDNAClassifier_v1
-from datasets.tfbs_with_neg import TFBSWithNeg, TFBSWithNeg_offline, TFBSWithNeg_flexDNA_TESTONLY
+from datasets.tfbs_with_neg import TFBSWithNeg_flexDNA_TESTONLY
 from train.binary_cls import train_model, validate_model
 
 from datetime import datetime
