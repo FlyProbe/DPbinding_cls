@@ -4,6 +4,7 @@ DNAbert2 needs python <= 3.8
 '''
 
 import os
+import json
 from misc import utils
 
 import pandas as pd
@@ -84,10 +85,34 @@ def generate_offline_dataset_ESMC(path):
 
     torch.save(res, dst)
 
+def regroup_with_TF(**kwargs):
+    path = kwargs.get('path')
+    if isinstance(path, list):
+        data = []
+        for p in path:
+            data.extend(load_data(p))
+    elif isinstance(path, str):
+        data = load_data(path)
+
+    data = [it for it in data if it['label'] == 1]
+    res = {}
+    for it in data:
+        if it['TF sequence'] in res:
+            res[it['TF sequence']].append(it['binding site sequence'])
+        else:
+            res[it['TF sequence']] = [it['TF name'],it['binding site sequence']]
+    return res
+
 
 if __name__ == '__main__':
-    path = r'D:\projects\ProteinDNABinding\ProteinDNABinding\py\data\tfbs_dataset_with_negatives.csv'
-    # python <= 3.8
-    generate_offline_dataset_DNA(path)
-    # python >= 3.10
-    # generate_offline_dataset_ESMC(path)
+    # path = r'D:\projects\ProteinDNABinding\ProteinDNABinding\py\data\tfbs_dataset_with_negatives.csv'
+    # # python <= 3.8
+    # generate_offline_dataset_DNA(path)
+    # # python >= 3.10
+    # # generate_offline_dataset_ESMC(path)
+    path  = [r'../data/training_dataset_with_negatives_v4.csv',
+             r'../data/test_dataset_with_negatives_v4.csv']
+    res = regroup_with_TF(path=path)
+    with open(r'../tfbs.json', 'w') as f:
+        json.dump(res, f, ensure_ascii=False, indent=4)
+
