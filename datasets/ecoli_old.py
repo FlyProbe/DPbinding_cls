@@ -1,30 +1,15 @@
+import os
+import sys
 import torch
 from torch.utils.data import Dataset
 import random
 import numpy as np
 
-from collections import Counter
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.append(parent_dir)
 
-
-def generate_random_dna_sequence(dna_seq):
-    """
-    根据给定的 DNA 序列生成一段比例相同的随机 DNA 序列。
-
-    :param dna_seq: 原始 DNA 序列，只包含 'A', 'T', 'C', 'G'
-    :return: 生成的随机 DNA 序列，同长度且字母比例相同
-    """
-    # 统计字母比例
-    counts = Counter(dna_seq)
-    total = len(dna_seq)
-
-    # 计算每个字母的比例
-    weights = [counts['A'] / total, counts['T'] / total, counts['C'] / total, counts['G'] / total]
-
-    # 按比例生成随机序列
-    random_sequence = random.choices(population=['A', 'T', 'C', 'G'], weights=weights, k=total)
-
-    # 返回为字符串
-    return ''.join(random_sequence)
+from misc import utils
+from datasets.transforms import dna_aug
 
 class ProteinDNADataset(Dataset):
     def __init__(self, protein_embeddings, id, dna_embeddings, pos_r=0.3, neg_r=0.6, rand_r=0.1, **kwargs,):
@@ -66,7 +51,7 @@ class ProteinDNADataset(Dataset):
             # except:
             #   dna_seq = random.choice(self.dna_embeddings[random.choice(list(self.dna_embeddings.keys()))][0])
             dna_seq = random.choice(self.dna_embeddings[id][0])
-            fake_dna_seq = generate_random_dna_sequence(dna_seq)
+            fake_dna_seq = dna_aug.generate_random_dna_sequence(dna_seq)
 
             tokens = self.DNA_tokenizer(fake_dna_seq, return_tensors="pt")["input_ids"].to("cuda")
             with torch.no_grad():

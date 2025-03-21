@@ -103,6 +103,33 @@ def regroup_with_TF(**kwargs):
             res[it['TF sequence']] = [it['TF name'],it['binding site sequence']]
     return res
 
+def ESMC_json_protein(path):
+    from esm.models.esmc import ESMC
+    from esm.sdk.api import ESMProtein, LogitsConfig
+
+    fn = os.path.splitext(os.path.split(path)[-1])[0] + '_ESMC.pt'
+    dst = os.path.join(os.path.split(path)[0], fn)
+    if os.path.exists(dst):
+        os.remove(dst)
+
+    with open(path, 'r') as f:
+        data = json.load(f)
+    res = []
+    client = ESMC.from_pretrained("esmc_600m").to("cuda")  # or "cpu"
+
+    for k in tqdm(list(data.keys())):
+        protein = ESMProtein(sequence=k)
+
+        protein_tensor = client.encode(protein)
+        logits_output = client.logits(
+            protein_tensor, LogitsConfig(sequence=True, return_embeddings=True)
+        )
+        embedding = torch.mean(logits_output.embeddings, dim=1)
+
+        res.append({'name': data[k][0], 'TF_embedding': embedding, 'BS_seq': data[k][1:]})
+
+    torch.save(res, dst)
+
 
 if __name__ == '__main__':
     # path = r'D:\projects\ProteinDNABinding\ProteinDNABinding\py\data\tfbs_dataset_with_negatives.csv'
@@ -110,9 +137,12 @@ if __name__ == '__main__':
     # generate_offline_dataset_DNA(path)
     # # python >= 3.10
     # # generate_offline_dataset_ESMC(path)
-    path  = [r'../data/training_dataset_with_negatives_v4.csv',
-             r'../data/test_dataset_with_negatives_v4.csv']
-    res = regroup_with_TF(path=path)
-    with open(r'../tfbs.json', 'w') as f:
-        json.dump(res, f, ensure_ascii=False, indent=4)
+
+    # path  = [r'../data/training_dataset_with_negatives_v4.csv',
+    #          r'../data/test_dataset_with_negatives_v4.csv']
+    # res = regroup_with_TF(path=path)
+    # with open(r'../data/tfbs.json', 'w') as f:
+    #     json.dump(res, f, ensure_ascii=False, indent=4)
+
+    ESMC_json_protein(r"D:\projects\DPbinding_cls\data\tfbs.json")
 

@@ -24,7 +24,7 @@ def train_model(
 
         # 前向传播
         outputs = model(dna, protein)
-        loss = criterion(outputs, labels)
+        loss = criterion(outputs, labels.to(torch.float32))
 
         # 反向传播 + 优化
         optimizer.zero_grad()  # 梯度清零
@@ -33,8 +33,6 @@ def train_model(
 
         # 累加损失
         running_loss += loss.item()
-
-
         probs = torch.sigmoid(outputs)  # 转换为概率
         preds = (probs >= 0.5).int()
 
@@ -75,7 +73,7 @@ def validate_model(model, dataloader, criterion, device="cuda"):
             dna = dna.to(device)
 
             outputs = model(dna, protein)
-            loss = criterion(outputs, labels)
+            loss = criterion(outputs, labels.to(torch.float32))
 
             val_loss += loss.item()
 

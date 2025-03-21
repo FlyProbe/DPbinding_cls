@@ -4,7 +4,6 @@ import numpy as np
 
 import torch
 from torch.utils.data import Dataset
-from ecoli_old import generate_random_dna_sequence
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.append(parent_dir)
@@ -101,20 +100,9 @@ class TFBSWithNeg_flexDNA(Dataset):
     def __getitem__(self, idx):
         # offline part
         protein_eb = self.data[idx]['TF_embedding'].squeeze(0)
-        label = self.data[idx].get('label', None)
-
         # augment DNA
-        data_type = np.random.choice(["pos", "neg", "rand"], p=[self.pos_r, self.neg_r, self.rand_r])
-        if data_type == "pos":
-            dna = self.data[idx]['BS_seq']
-        elif data_type == "neg":
-            fake_idx = np.random.randint(len(self.data))
-            while fake_idx == idx:
-                fake_idx = np.random.randint(len(self.data))
-            dna = self.data[fake_idx]['BS_neg_seq']
-        else:
-            dna = generate_random_dna_sequence(self.data[idx]['BS_seq'])
-
+        dna = self.data[idx]['BS_seq']
+        label = self.data[idx].get('label', None)
         dna = dna_aug.DNA_extension(dna, self.extension)
         dna_eb = utils.DNAbert2_embedding(dna, self.DNA_tokenizer, self.DNAbert2)
         return (protein_eb,

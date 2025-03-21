@@ -67,7 +67,7 @@ def test(model_path, output_acc=True, batch_size=1, device="cuda", **kwargs):
     # transforms
     extension = kwargs.get("extension", 0)
     dataset = TFBSWithNeg_flexDNA_TESTONLY(
-        data[:1000],
+        data[:],
         pos_r=0.3,
         neg_r=0.6,
         rand_r=0.1,
