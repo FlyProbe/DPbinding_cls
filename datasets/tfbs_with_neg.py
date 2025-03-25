@@ -4,12 +4,13 @@ import numpy as np
 
 import torch
 from torch.utils.data import Dataset
+from collections import Counter
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.append(parent_dir)
 
 from misc import utils
-from datasets.transforms import dna_aug
+from datasets import transforms
 
 
 class TFBSWithNeg(Dataset):
@@ -103,18 +104,17 @@ class TFBSWithNeg_flexDNA(Dataset):
         # augment DNA
         dna = self.data[idx]['BS_seq']
         label = self.data[idx].get('label', None)
-        dna = dna_aug.DNA_extension(dna, self.extension)
+        dna = transforms.DNA_extension(dna, self.extension)
         dna_eb = utils.DNAbert2_embedding(dna, self.DNA_tokenizer, self.DNAbert2)
         return (protein_eb,
                 dna_eb,
                 label)
 
 
-
 class TFBSWithNeg_flexDNA_TESTONLY(TFBSWithNeg_flexDNA):
     def __getitem__(self, idx):
         protein_eb = self.data[idx]['TF_embedding'].squeeze(0)
-        dna = dna_aug.DNA_extension(self.data[idx]['BS_seq'], self.extension)
+        dna = transforms.DNA_extension(self.data[idx]['BS_seq'], self.extension)
         dna_eb = utils.DNAbert2_embedding(dna, self.DNA_tokenizer, self.DNAbert2)
         label = self.data[idx].get('label', None)
 

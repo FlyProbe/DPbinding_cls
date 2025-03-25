@@ -115,7 +115,7 @@ def ESMC_json_protein(path):
     with open(path, 'r') as f:
         data = json.load(f)
     res = []
-    client = ESMC.from_pretrained("esmc_600m").to("cuda")  # or "cpu"
+    client = ESMC.from_pretrained("esmc_300m").to("cuda")  # or "cpu"
 
     for k in tqdm(list(data.keys())):
         protein = ESMProtein(sequence=k)

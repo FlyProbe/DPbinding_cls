@@ -2,3 +2,4 @@ log/
 .idea/
 data/
 *.pyc
+!data/*.csv
