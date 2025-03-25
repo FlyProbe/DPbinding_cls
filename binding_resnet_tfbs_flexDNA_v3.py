@@ -131,57 +131,55 @@ def main():
                                           'BS_seq':BS_seq,
                                           'label': 0})
 
-        random.shuffle(neg_pairs)
-        val_data = pos_pairs[:num_val] + neg_pairs[:num_val]
-        train_data = pos_pairs[num_val:] + neg_pairs[num_val:]
+            random.shuffle(neg_pairs)
+            val_data = pos_pairs[:num_val] + neg_pairs[:num_val]
+            train_data = pos_pairs[num_val:] + neg_pairs[num_val:]
 
-        train_subset = TFBSWithNeg_flexDNA(
-            train_data,
-            # pos_r=0.5,
-            # neg_r=0.5,
-            # rand_r=0.0,
-            DNAbert2=DNA_model,
-            DNA_tokenizer=tokenizer,
-            extension=extension
-        )
-        val_subset = TFBSWithNeg_flexDNA(
-            val_data,
-            # pos_r=0.8,
-            # neg_r=0.1,
-            # rand_r=0.1,
-            DNAbert2=DNA_model,
-            DNA_tokenizer=tokenizer,
-            extension=extension
-        )
+            train_subset = TFBSWithNeg_flexDNA(
+                train_data,
+                # pos_r=0.5,
+                # neg_r=0.5,
+                # rand_r=0.0,
+                DNAbert2=DNA_model,
+                DNA_tokenizer=tokenizer,
+                extension=extension
+            )
+            val_subset = TFBSWithNeg_flexDNA(
+                val_data,
+                # pos_r=0.8,
+                # neg_r=0.1,
+                # rand_r=0.1,
+                DNAbert2=DNA_model,
+                DNA_tokenizer=tokenizer,
+                extension=extension
+            )
 
-        train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True)
-        val_loader = DataLoader(val_subset, batch_size=batch_size, shuffle=True)
+            train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True)
+            val_loader = DataLoader(val_subset, batch_size=batch_size, shuffle=True)
 
         # 训练模型
         train_loss = train_model(
             model, train_loader, criterion, optimizer, scheduler, device, print_interval=50
         )
+        current_lr = optimizer.param_groups[0]['lr']
+        logger.info(f"Epoch {epoch+1}/{num_epochs}, Loss: {train_loss:.4f}, LR: {current_lr:.6f}")
 
         # 验证模型
-        val_loss, val_accuracy = validate_model(model, val_loader, criterion, device)
-
-        logger.info(f"Epoch {epoch + 1}/{num_epochs}, "
-                    f"Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy:.4f}")
+        accuracy, auc_score = validate_model(model, val_loader, criterion, device)
+        logger.info(f"Validation Accuracy : {accuracy * 100:.2f}% ; ROC AUC Score : {auc_score:.4f}")
 
         # 保存最佳模型
-        if val_loss < best_val_loss and val_accuracy > best_accuracy:
-            best_val_loss = val_loss
-            best_accuracy = val_accuracy
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
 
             torch.save(model.state_dict(), f"{log_dir}/best_model.pth")
-            logger.info(f"Best model saved with Val Loss: {best_val_loss:.4f}, "
-                        f"Val Accuracy: {best_accuracy:.4f}.")
+            logger.info(f"Best model saved with Val Accuracy: {best_accuracy:.4f}; ROC AUC Score : {auc_score:.4f}")
 
 
 
     # 打印最终验证集上的性能
-    logger.info(f"Training Complete. Final Val Loss: {best_val_loss:.4f}, Final Val Accuracy: {best_accuracy:.4f}")
-    print(f"Training Complete. Final Val Loss: {best_val_loss:.4f}, Final Val Accuracy: {best_accuracy:.4f}")
+    logger.info(f"Training Complete.")
+    print(f"Training Complete.")
 
 
 if __name__ == "__main__":
