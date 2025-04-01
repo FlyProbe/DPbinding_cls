@@ -69,7 +69,8 @@ def DNAbert2_embedding(dna_seq, tokenizer, model):
     tokens = tokenizer(dna_seq, return_tensors="pt")["input_ids"].to(device)
     with torch.no_grad():
         outputs = model(tokens)[0]
-        embedding = torch.mean(outputs[0], dim=0)
+        # embedding = torch.mean(outputs[0], dim=0)
+        embedding = torch.max(outputs[0], dim=0)[0]
     return embedding
 
 def ESM2_embedding(protein_Seq, model, alphabet):
