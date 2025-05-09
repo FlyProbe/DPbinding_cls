@@ -14,10 +14,10 @@ class BiCrossAttention(nn.Module):
     def forward(self, dna_emb, protein_emb):
         dna_proj = self.dna_proj(dna_emb).unsqueeze(1)  # (batch, 1, hidden_dim)
         # protein_proj = self.protein_proj(protein_emb).unsqueeze(1)  # (batch, 1, hidden_dim)
-        protein_proj = protein_emb.unsqueeze(1)  # (batch, 1, hidden_dim)
+        protein_emb = protein_emb.unsqueeze(1)
         
-        attn_dna, _ = self.cross_attn_dna(dna_proj, protein_proj, protein_proj)
-        attn_protein, _ = self.cross_attn_protein(protein_proj, dna_proj, dna_proj)
+        attn_dna, _ = self.cross_attn_dna(dna_proj, protein_emb, protein_emb)
+        attn_protein, _ = self.cross_attn_protein(protein_emb, dna_proj, dna_proj)
         
         fused_emb = torch.cat([attn_dna, attn_protein], dim=-1)  # (batch, 1, hidden_dim * 2)
         return fused_emb.squeeze(1)  # (batch, hidden_dim * 2)
